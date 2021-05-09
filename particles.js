@@ -376,24 +376,6 @@ var pJS = function(tag_id, params){
     }else{
       this.shape = shape_type;
     }
-
-    if(this.shape == 'image'){
-      var sh = pJS.particles.shape;
-      this.img = {
-        src: sh.image.src,
-        ratio: sh.image.width / sh.image.height
-      }
-      if(!this.img.ratio) this.img.ratio = 1;
-      if(pJS.tmp.img_type == 'svg' && pJS.tmp.source_svg != undefined){
-        pJS.fn.vendors.createSvgImg(this);
-        if(pJS.tmp.pushing){
-          this.img.loaded = false;
-        }
-      }
-    }
-
-    
-
   };
 
 
@@ -457,31 +439,6 @@ var pJS = function(tag_id, params){
           2 // sideCountDenominator
         );
       break;
-
-      case 'image':
-
-        function draw(){
-          pJS.canvas.ctx.drawImage(
-            img_obj,
-            p.x-radius,
-            p.y-radius,
-            radius*2,
-            radius*2 / p.img.ratio
-          );
-        }
-
-        if(pJS.tmp.img_type == 'svg'){
-          var img_obj = p.img.obj;
-        }else{
-          var img_obj = pJS.tmp.img_obj;
-        }
-
-        if(img_obj){
-          draw();
-        }
-
-      break;
-
     }
 
     pJS.canvas.ctx.closePath();
@@ -655,21 +612,14 @@ var pJS = function(tag_id, params){
   };
 
   pJS.fn.particlesRefresh = function(){
+    window.cancelAnimationFrame(pJS.fn.drawAnimFrame);
 
-    /* init all */
-    cancelRequestAnimFrame(pJS.fn.checkAnimFrame);
-    cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
-    pJS.tmp.source_svg = undefined;
-    pJS.tmp.img_obj = undefined;
-    pJS.tmp.count_svg = 0;
     pJS.fn.particlesEmpty();
     pJS.fn.canvasClear();
     
     /* restart */
     pJS.fn.vendors.start();
-
   };
-
 
   /* ---------- pJS functions - particles interaction ------------ */
 
@@ -1200,39 +1150,6 @@ var pJS = function(tag_id, params){
     }
   };
 
-
-  pJS.fn.vendors.createSvgImg = function(p){
-
-    /* set color to svg element */
-    var svgXml = pJS.tmp.source_svg,
-        rgbHex = /#([0-9A-F]{3,6})/gi,
-        coloredSvgXml = svgXml.replace(rgbHex, function (m, r, g, b) {
-          if(p.color.rgb){
-            var color_value = 'rgba('+p.color.rgb.r+','+p.color.rgb.g+','+p.color.rgb.b+','+p.opacity+')';
-          }else{
-            var color_value = 'hsla('+p.color.hsl.h+','+p.color.hsl.s+'%,'+p.color.hsl.l+'%,'+p.opacity+')';
-          }
-          return color_value;
-        });
-
-    /* prepare to create img with colored svg */
-    var svg = new Blob([coloredSvgXml], {type: 'image/svg+xml;charset=utf-8'}),
-        DOMURL = window.URL || window.webkitURL || window,
-        url = DOMURL.createObjectURL(svg);
-
-    /* create particle img obj */
-    var img = new Image();
-    img.addEventListener('load', function(){
-      p.img.obj = img;
-      p.img.loaded = true;
-      DOMURL.revokeObjectURL(url);
-      pJS.tmp.count_svg++;
-    });
-    img.src = url;
-
-  };
-
-
   pJS.fn.vendors.destroypJS = function(){
     cancelAnimationFrame(pJS.fn.drawAnimFrame);
     canvas_el.remove();
@@ -1259,119 +1176,24 @@ var pJS = function(tag_id, params){
     //c.stroke();
     c.fill();
     c.restore();
-
   };
-
-  pJS.fn.vendors.exportImg = function(){
-    window.open(pJS.canvas.el.toDataURL('image/png'), '_blank');
-  };
-
-
-  pJS.fn.vendors.loadImg = function(type){
-
-    pJS.tmp.img_error = undefined;
-
-    if(pJS.particles.shape.image.src != ''){
-
-      if(type == 'svg'){
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', pJS.particles.shape.image.src);
-        xhr.onreadystatechange = function (data) {
-          if(xhr.readyState == 4){
-            if(xhr.status == 200){
-              pJS.tmp.source_svg = data.currentTarget.response;
-              pJS.fn.vendors.checkBeforeDraw();
-            }else{
-              console.log('Error pJS - Image not found');
-              pJS.tmp.img_error = true;
-            }
-          }
-        }
-        xhr.send();
-
-      }else{
-
-        var img = new Image();
-        img.addEventListener('load', function(){
-          pJS.tmp.img_obj = img;
-          pJS.fn.vendors.checkBeforeDraw();
-        });
-        img.src = pJS.particles.shape.image.src;
-
-      }
-
-    }else{
-      console.log('Error pJS - No image.src');
-      pJS.tmp.img_error = true;
-    }
-
-  };
-
 
   pJS.fn.vendors.draw = function(){
+    pJS.fn.particlesDraw();
 
-    if(pJS.particles.shape.type == 'image'){
-
-      if(pJS.tmp.img_type == 'svg'){
-
-        if(pJS.tmp.count_svg >= pJS.particles.number.value){
-          pJS.fn.particlesDraw();
-          if(!pJS.particles.move.enable) cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
-          else pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
-        }else{
-          //console.log('still loading...');
-          if(!pJS.tmp.img_error) pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
-        }
-
-      }else{
-
-        if(pJS.tmp.img_obj != undefined){
-          pJS.fn.particlesDraw();
-          if(!pJS.particles.move.enable) cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
-          else pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
-        }else{
-          if(!pJS.tmp.img_error) pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
-        }
-
-      }
-
-    }else{
-      pJS.fn.particlesDraw();
-      if(!pJS.particles.move.enable) cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
-      else pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
+    if(!pJS.particles.move.enable) {
+      window.cancelAnimationFrame(pJS.fn.drawAnimFrame);
+    } else {
+      pJS.fn.drawAnimFrame = window.requestAnimationFrame(pJS.fn.vendors.draw);
     }
-
   };
-
 
   pJS.fn.vendors.checkBeforeDraw = function(){
-
-    // if shape is image
-    if(pJS.particles.shape.type == 'image'){
-
-      if(pJS.tmp.img_type == 'svg' && pJS.tmp.source_svg == undefined){
-        pJS.tmp.checkAnimFrame = requestAnimFrame(check);
-      }else{
-        //console.log('images loaded! cancel check');
-        cancelRequestAnimFrame(pJS.tmp.checkAnimFrame);
-        if(!pJS.tmp.img_error){
-          pJS.fn.vendors.init();
-          pJS.fn.vendors.draw();
-        }
-        
-      }
-
-    }else{
-      pJS.fn.vendors.init();
-      pJS.fn.vendors.draw();
-    }
-
+    pJS.fn.vendors.init();
+    pJS.fn.vendors.draw();
   };
 
-
   pJS.fn.vendors.init = function(){
-
     /* init canvas + particles */
     pJS.fn.retinaInit();
     pJS.fn.canvasInit();
@@ -1382,33 +1204,17 @@ var pJS = function(tag_id, params){
 
     /* particles.line_linked - convert hex colors to rgb */
     pJS.particles.line_linked.color_rgb_line = hexToRgb(pJS.particles.line_linked.color);
-
   };
 
 
   pJS.fn.vendors.start = function(){
-
-    if(isInArray('image', pJS.particles.shape.type)){
-      pJS.tmp.img_type = pJS.particles.shape.image.src.substr(pJS.particles.shape.image.src.length - 3);
-      pJS.fn.vendors.loadImg(pJS.tmp.img_type);
-    }else{
-      pJS.fn.vendors.checkBeforeDraw();
-    }
-
+    pJS.fn.vendors.checkBeforeDraw();
   };
-
-
-
 
   /* ---------- pJS - start ------------ */
 
-
   pJS.fn.vendors.eventsListeners();
-
   pJS.fn.vendors.start();
-  
-
-
 };
 
 /* ---------- global functions - vendors ------------ */
@@ -1425,26 +1231,6 @@ Object.deepExtend = function deepExtend(destination, source) {
   }
   return destination;
 };
-
-window.requestAnimFrame = (function(){
-  return  window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame    ||
-    window.oRequestAnimationFrame      ||
-    window.msRequestAnimationFrame     ||
-    function(callback){
-      window.setTimeout(callback, 1000 / 60);
-    };
-})();
-
-window.cancelRequestAnimFrame = ( function() {
-  return window.cancelAnimationFrame         ||
-    window.webkitCancelRequestAnimationFrame ||
-    window.mozCancelRequestAnimationFrame    ||
-    window.oCancelRequestAnimationFrame      ||
-    window.msCancelRequestAnimationFrame     ||
-    clearTimeout
-} )();
 
 function hexToRgb(hex){
   // By Tim Down - http://stackoverflow.com/a/5624139/3493650
