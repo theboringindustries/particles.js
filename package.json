@@ -4,7 +4,7 @@
   "description": "A lightweight JavaScript library for creating particles",
   "homepage": "https://github.com/theboringindustries/particles.js",
   "scripts": {
-    "build": "esbuild particles.js --bundle --minify --outfile=particles.min.js",
+    "build": "esbuild particles.js --bundle --minify --platform=node --outfile=particles.min.js",
     "release": "np"
   },
   "repository": {
