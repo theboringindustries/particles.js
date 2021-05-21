@@ -4,8 +4,8 @@ export default function (canvas_el, params, canvasParams) {
   this.pJS = {
     canvas: {
       el: canvas_el,
-      w: canvas_el.offsetWidth,
-      h: canvas_el.offsetHeight,
+      w: canvas_el.width,
+      h: canvas_el.height,
     },
     particles: {
       number: {
