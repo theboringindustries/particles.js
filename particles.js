@@ -1,4 +1,4 @@
-export default function (canvas_el, params) {
+export default function (canvas_el, params, canvasParams) {
   /* particles.js variables with default values */
 
   this.pJS = {
@@ -143,8 +143,8 @@ export default function (canvas_el, params) {
   };
 
   pJS.fn.retinaInit = function () {
-    if (pJS.retina_detect && window.devicePixelRatio > 1) {
-      pJS.canvas.pxratio = window.devicePixelRatio;
+    if (pJS.retina_detect && canvasParams.pixelRatio > 1) {
+      pJS.canvas.pxratio = canvasParams.pixelRatio;
       pJS.tmp.retina = true;
     } else {
       pJS.canvas.pxratio = 1;
@@ -181,33 +181,6 @@ export default function (canvas_el, params) {
   pJS.fn.canvasSize = function () {
     pJS.canvas.el.width = pJS.canvas.w;
     pJS.canvas.el.height = pJS.canvas.h;
-
-    if (pJS && pJS.interactivity.events.resize) {
-      window.addEventListener("resize", function () {
-        pJS.canvas.w = pJS.canvas.el.offsetWidth;
-        pJS.canvas.h = pJS.canvas.el.offsetHeight;
-
-        /* resize canvas */
-        if (pJS.tmp.retina) {
-          pJS.canvas.w *= pJS.canvas.pxratio;
-          pJS.canvas.h *= pJS.canvas.pxratio;
-        }
-
-        pJS.canvas.el.width = pJS.canvas.w;
-        pJS.canvas.el.height = pJS.canvas.h;
-
-        /* repaint canvas on anim disabled */
-        if (!pJS.particles.move.enable) {
-          pJS.fn.particlesEmpty();
-          pJS.fn.particlesCreate();
-          pJS.fn.particlesDraw();
-          pJS.fn.vendors.densityAutoParticles();
-        }
-
-        /* density particles enabled */
-        pJS.fn.vendors.densityAutoParticles();
-      });
-    }
   };
 
   pJS.fn.canvasPaint = function () {
@@ -627,7 +600,7 @@ export default function (canvas_el, params) {
   };
 
   pJS.fn.particlesRefresh = function () {
-    window.cancelAnimationFrame(pJS.fn.drawAnimFrame);
+    cancelAnimationFrame(pJS.fn.drawAnimFrame);
 
     pJS.fn.particlesEmpty();
     pJS.fn.canvasClear();
@@ -1039,98 +1012,98 @@ export default function (canvas_el, params) {
 
   /* ---------- pJS functions - vendors ------------ */
 
-  pJS.fn.vendors.eventsListeners = function () {
-    /* events target element */
-    if (pJS.interactivity.detect_on == "window") {
-      pJS.interactivity.el = window;
-    } else {
-      pJS.interactivity.el = pJS.canvas.el;
+  pJS.fn.vendors.mousemove = function (e) {
+    var pos_x = e.clientX,
+      pos_y = e.clientY;
+
+    pJS.interactivity.mouse.pos_x = pos_x;
+    pJS.interactivity.mouse.pos_y = pos_y;
+
+    if (pJS.tmp.retina) {
+      pJS.interactivity.mouse.pos_x *= pJS.canvas.pxratio;
+      pJS.interactivity.mouse.pos_y *= pJS.canvas.pxratio;
     }
 
-    /* detect mouse pos - on hover / click event */
-    if (
-      pJS.interactivity.events.onhover.enable ||
-      pJS.interactivity.events.onclick.enable
-    ) {
-      /* el on mousemove */
-      pJS.interactivity.el.addEventListener("mousemove", function (e) {
-        if (pJS.interactivity.el == window) {
-          var pos_x = e.clientX,
-            pos_y = e.clientY;
-        } else {
-          var pos_x = e.offsetX || e.clientX,
-            pos_y = e.offsetY || e.clientY;
-        }
+    pJS.interactivity.status = "mousemove";
+  };
 
-        pJS.interactivity.mouse.pos_x = pos_x;
-        pJS.interactivity.mouse.pos_y = pos_y;
+  pJS.fn.vendors.mouseleave = function () {
+    pJS.interactivity.mouse.pos_x = null;
+    pJS.interactivity.mouse.pos_y = null;
+    pJS.interactivity.status = "mouseleave";
+  };
 
-        if (pJS.tmp.retina) {
-          pJS.interactivity.mouse.pos_x *= pJS.canvas.pxratio;
-          pJS.interactivity.mouse.pos_y *= pJS.canvas.pxratio;
-        }
+  pJS.fn.vendors.resize = function () {
+    pJS.canvas.w = pJS.canvas.el.offsetWidth;
+    pJS.canvas.h = pJS.canvas.el.offsetHeight;
 
-        pJS.interactivity.status = "mousemove";
-      });
-
-      /* el on onmouseleave */
-      pJS.interactivity.el.addEventListener("mouseleave", function (e) {
-        pJS.interactivity.mouse.pos_x = null;
-        pJS.interactivity.mouse.pos_y = null;
-        pJS.interactivity.status = "mouseleave";
-      });
+    /* resize canvas */
+    if (pJS.tmp.retina) {
+      pJS.canvas.w *= pJS.canvas.pxratio;
+      pJS.canvas.h *= pJS.canvas.pxratio;
     }
 
-    /* on click event */
+    pJS.canvas.el.width = pJS.canvas.w;
+    pJS.canvas.el.height = pJS.canvas.h;
+
+    /* repaint canvas on anim disabled */
+    if (!pJS.particles.move.enable) {
+      pJS.fn.particlesEmpty();
+      pJS.fn.particlesCreate();
+      pJS.fn.particlesDraw();
+      pJS.fn.vendors.densityAutoParticles();
+    }
+
+    /* density particles enabled */
+    pJS.fn.vendors.densityAutoParticles();
+  };
+
+  pJS.fn.vendors.click = function (e) {
+    pJS.interactivity.mouse.click_pos_x = pJS.interactivity.mouse.pos_x;
+    pJS.interactivity.mouse.click_pos_y = pJS.interactivity.mouse.pos_y;
+    pJS.interactivity.mouse.click_time = new Date().getTime();
+
     if (pJS.interactivity.events.onclick.enable) {
-      pJS.interactivity.el.addEventListener("click", function () {
-        pJS.interactivity.mouse.click_pos_x = pJS.interactivity.mouse.pos_x;
-        pJS.interactivity.mouse.click_pos_y = pJS.interactivity.mouse.pos_y;
-        pJS.interactivity.mouse.click_time = new Date().getTime();
-
-        if (pJS.interactivity.events.onclick.enable) {
-          switch (pJS.interactivity.events.onclick.mode) {
-            case "push":
-              if (pJS.particles.move.enable) {
-                pJS.fn.modes.pushParticles(
-                  pJS.interactivity.modes.push.particles_nb,
-                  pJS.interactivity.mouse
-                );
-              } else {
-                if (pJS.interactivity.modes.push.particles_nb == 1) {
-                  pJS.fn.modes.pushParticles(
-                    pJS.interactivity.modes.push.particles_nb,
-                    pJS.interactivity.mouse
-                  );
-                } else if (pJS.interactivity.modes.push.particles_nb > 1) {
-                  pJS.fn.modes.pushParticles(
-                    pJS.interactivity.modes.push.particles_nb
-                  );
-                }
-              }
-              break;
-
-            case "remove":
-              pJS.fn.modes.removeParticles(
-                pJS.interactivity.modes.remove.particles_nb
+      switch (pJS.interactivity.events.onclick.mode) {
+        case "push":
+          if (pJS.particles.move.enable) {
+            pJS.fn.modes.pushParticles(
+              pJS.interactivity.modes.push.particles_nb,
+              pJS.interactivity.mouse
+            );
+          } else {
+            if (pJS.interactivity.modes.push.particles_nb == 1) {
+              pJS.fn.modes.pushParticles(
+                pJS.interactivity.modes.push.particles_nb,
+                pJS.interactivity.mouse
               );
-              break;
-
-            case "bubble":
-              pJS.tmp.bubble_clicking = true;
-              break;
-
-            case "repulse":
-              pJS.tmp.repulse_clicking = true;
-              pJS.tmp.repulse_count = 0;
-              pJS.tmp.repulse_finish = false;
-              setTimeout(function () {
-                pJS.tmp.repulse_clicking = false;
-              }, pJS.interactivity.modes.repulse.duration * 1000);
-              break;
+            } else if (pJS.interactivity.modes.push.particles_nb > 1) {
+              pJS.fn.modes.pushParticles(
+                pJS.interactivity.modes.push.particles_nb
+              );
+            }
           }
-        }
-      });
+          break;
+
+        case "remove":
+          pJS.fn.modes.removeParticles(
+            pJS.interactivity.modes.remove.particles_nb
+          );
+          break;
+
+        case "bubble":
+          pJS.tmp.bubble_clicking = true;
+          break;
+
+        case "repulse":
+          pJS.tmp.repulse_clicking = true;
+          pJS.tmp.repulse_count = 0;
+          pJS.tmp.repulse_finish = false;
+          setTimeout(function () {
+            pJS.tmp.repulse_clicking = false;
+          }, pJS.interactivity.modes.repulse.duration * 1000);
+          break;
+      }
     }
   };
 
@@ -1207,9 +1180,9 @@ export default function (canvas_el, params) {
     pJS.fn.particlesDraw();
 
     if (!pJS.particles.move.enable) {
-      window.cancelAnimationFrame(pJS.fn.drawAnimFrame);
+      cancelAnimationFrame(pJS.fn.drawAnimFrame);
     } else {
-      pJS.fn.drawAnimFrame = window.requestAnimationFrame(pJS.fn.vendors.draw);
+      pJS.fn.drawAnimFrame = requestAnimationFrame(pJS.fn.vendors.draw);
     }
   };
 
@@ -1239,7 +1212,6 @@ export default function (canvas_el, params) {
 
   /* ---------- pJS - start ------------ */
 
-  pJS.fn.vendors.eventsListeners();
   pJS.fn.vendors.start();
 }
 
