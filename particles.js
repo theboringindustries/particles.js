@@ -151,8 +151,8 @@ export default function (canvas_el, params, canvasParams) {
       pJS.tmp.retina = false;
     }
 
-    pJS.canvas.w = pJS.canvas.el.offsetWidth * pJS.canvas.pxratio;
-    pJS.canvas.h = pJS.canvas.el.offsetHeight * pJS.canvas.pxratio;
+    pJS.canvas.w = pJS.canvas.el.width * pJS.canvas.pxratio;
+    pJS.canvas.h = pJS.canvas.el.height * pJS.canvas.pxratio;
 
     pJS.particles.size.value = pJS.tmp.obj.size_value * pJS.canvas.pxratio;
     pJS.particles.size.anim.speed =
@@ -1033,9 +1033,9 @@ export default function (canvas_el, params, canvasParams) {
     pJS.interactivity.status = "mouseleave";
   };
 
-  pJS.fn.vendors.resize = function () {
-    pJS.canvas.w = pJS.canvas.el.offsetWidth;
-    pJS.canvas.h = pJS.canvas.el.offsetHeight;
+  pJS.fn.vendors.resize = function (width, height) {
+    pJS.canvas.w = width;
+    pJS.canvas.h = height;
 
     /* resize canvas */
     if (pJS.tmp.retina) {
@@ -1213,6 +1213,8 @@ export default function (canvas_el, params, canvasParams) {
   /* ---------- pJS - start ------------ */
 
   pJS.fn.vendors.start();
+
+  return pJS;
 }
 
 /* ---------- global functions - vendors ------------ */
