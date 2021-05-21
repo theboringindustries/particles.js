@@ -1012,9 +1012,9 @@ export default function (canvas_el, params, canvasParams) {
 
   /* ---------- pJS functions - vendors ------------ */
 
-  pJS.fn.vendors.mousemove = function (e) {
-    var pos_x = e.clientX,
-      pos_y = e.clientY;
+  pJS.fn.vendors.mousemove = function (x, y) {
+    var pos_x = x,
+      pos_y = y;
 
     pJS.interactivity.mouse.pos_x = pos_x;
     pJS.interactivity.mouse.pos_y = pos_y;
@@ -1058,7 +1058,7 @@ export default function (canvas_el, params, canvasParams) {
     pJS.fn.vendors.densityAutoParticles();
   };
 
-  pJS.fn.vendors.click = function (e) {
+  pJS.fn.vendors.click = function () {
     pJS.interactivity.mouse.click_pos_x = pJS.interactivity.mouse.pos_x;
     pJS.interactivity.mouse.click_pos_y = pJS.interactivity.mouse.pos_y;
     pJS.interactivity.mouse.click_time = new Date().getTime();
@@ -1193,7 +1193,6 @@ export default function (canvas_el, params, canvasParams) {
 
   pJS.fn.vendors.init = function () {
     /* init canvas + particles */
-    pJS.fn.retinaInit();
     pJS.fn.canvasInit();
     pJS.fn.canvasSize();
     pJS.fn.canvasPaint();
@@ -1213,6 +1212,7 @@ export default function (canvas_el, params, canvasParams) {
   /* ---------- pJS - start ------------ */
 
   pJS.fn.vendors.start();
+  pJS.fn.retinaInit();
 
   return pJS;
 }
